@@ -62,6 +62,7 @@ public class Menu {
                 case '9':
                     salir = true;
                     System.out.println("Saliendo de la aplicación...");
+                    System.exit(0);
                     break;
                 default:
                     System.out.println("Opción inválida. Inténtalo de nuevo.");
