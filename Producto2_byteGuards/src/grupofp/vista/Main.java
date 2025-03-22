@@ -27,7 +27,7 @@ public class Main {
         LocalDate fechaPedido = LocalDate.now().minusDays(6);
 
         //  Crear el pedido (2 pares de zapatillas)
-        Pedido pedidoAndrea = new Pedido(1, andrea, 2, fechaPedido, zapatillas);
+        Pedido pedidoAndrea = new Pedido(1, andrea, 2, fechaPedido, zapatillas, false);
         admin.agregarPedido(pedidoAndrea);
 
         // Mostrar pedidos pendientes

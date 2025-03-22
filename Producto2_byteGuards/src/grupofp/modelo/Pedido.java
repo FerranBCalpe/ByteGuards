@@ -13,12 +13,13 @@ public class Pedido {
 
 
     //constructor
-    public Pedido(int numeroPedido, Cliente cliente, int cantidad, LocalDate fechaPedido, Articulo articulo) {
+    public Pedido(int numeroPedido, Cliente cliente, int cantidad, LocalDate fechaPedido, Articulo articulo, Boolean enviado) {
         this.numeroPedido = numeroPedido;
         this.cliente = cliente;
         this.cantidad = cantidad;
         this.fechaPedido = fechaPedido;
         this.articulo = articulo;
+        this.enviado = enviado;
     }
 
     //accesor methods - getters
@@ -53,14 +54,11 @@ public class Pedido {
         return(articulo.getPrecioVenta() * cantidad) * (1 - descuento);
     }
 
-    public boolean PuedeCancelarse(LocalDate newDate){
-        // fecha del momento
-        LocalDate fechaPedidoLocal= fechaPedido.plusDays(articulo.getTiempoPreparacion());
-        // fecha máxima para cancelar (preparción+ fecha pedido > fecha del momento)
-        LocalDate fechaLimite = fechaPedidoLocal.plusDays(articulo.getTiempoPreparacion());
 
+    // FALTA REVISAR ESTA PARTE
+    public boolean PuedeCancelarse(LocalDate newDate) {
+        LocalDate fechaLimite = fechaPedido.plusDays(articulo.getTiempoPreparacion());
         return newDate.isBefore(fechaLimite);
     }
-
 
 }

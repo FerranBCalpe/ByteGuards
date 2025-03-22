@@ -178,8 +178,22 @@ public class Admin {
         int cantidad = scanner.nextInt();
         scanner.nextLine();  // Limpiar buffer
 
+
+
+        //añadir se ha enviado este pedido???
+
+
         LocalDate fechaPedido = LocalDate.now();
-        Pedido nuevoPedido = new Pedido(numeroPedido, cliente, cantidad, fechaPedido, articulo);
+        Pedido nuevoPedido = new Pedido(numeroPedido, cliente, cantidad, fechaPedido, articulo, false);
+
+
+
+        System.out.println("Se ha enviado este producto? S/N");
+        String respuesta = scanner.nextLine(); // Leemos la respuesta como String
+        boolean enviado = respuesta.equalsIgnoreCase("S"); // Si es "S" (mayúscula o minúscula), enviado es true
+        System.out.println("Enviado: " + enviado);
+
+
         agregarPedido(nuevoPedido);
         System.out.println("Pedido creado con éxito.");
     }
