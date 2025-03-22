@@ -26,6 +26,8 @@ public class Cliente {
         return email;
     }
 
+    public String getDomicilio() {return domicilio;}
+
     public String getNombre(){
         return nombre;
     }

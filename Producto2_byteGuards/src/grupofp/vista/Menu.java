@@ -3,15 +3,13 @@ package grupofp.vista;
 import grupofp.controlador.Admin;
 import java.util.Scanner;
 
-
 public class Menu {
-    Scanner teclado = new Scanner(System.in);
+    private Scanner teclado;
     private Admin admin;
-    private Scanner scanner;
 
     public Menu(Admin admin) {
         this.admin = admin;
-        this.scanner = new Scanner(System.in);
+        this.teclado = new Scanner(System.in);
     }
 
     public void mostrarMenu() {
@@ -19,37 +17,64 @@ public class Menu {
         char opcion;
         do {
             System.out.println("\n--- Menú Principal ---");
-            System.out.println("1. Agregar Cliente");
-            System.out.println("2. Agregar Artículo");
-            System.out.println("3. Crear Pedido");
-            System.out.println("4. Mostrar Pedidos Pendientes");
-            System.out.println("5. Salir de la aplicación");
+            // Orden: Artículo, Cliente, Pedido
+            System.out.println("1. Agregar Artículo");
+            System.out.println("2. Mostrar Artículos");
+            System.out.println("3. Agregar Cliente");
+            System.out.println("4. Mostrar Clientes");
+            System.out.println("5. Crear Pedido");
+            System.out.println("6. Mostrar Pedidos Pendientes");
+            System.out.println("7. Mostrar Pedidos Enviados");
+            System.out.println("8. Eliminar Pedido");
+            System.out.println("9. Salir");
             System.out.print("Elige una opción: ");
-            opcion = demanarOpcionMenu();
-            scanner.nextLine();  // Limpiar buffer
+
+            opcion = pedirOpcionMenu();
 
             switch (opcion) {
                 case '1':
-                    admin.agregarCliente(scanner);
+                    admin.agregarArticulo(teclado);
                     break;
                 case '2':
-                    admin.agregarArticulo(scanner);
+                    admin.mostrarArticulos();
                     break;
                 case '3':
-                    admin.crearPedido(scanner);
+                    admin.agregarCliente(teclado);
                     break;
                 case '4':
-                    admin.mostrarPendientes();
+                    admin.mostrarClientes();
                     break;
                 case '5':
+                    admin.crearPedido(teclado);
+                    break;
+                case '6':
+                    admin.mostrarPendientes();
+                    break;
+                case '7':
+                    admin.mostrarEnviados();
+                    break;
+                case '8':
+                    System.out.print("Introduce el número de pedido a eliminar: ");
+                    int numeroPedido = teclado.nextInt();
+                    teclado.nextLine(); // Limpiar buffer
+                    admin.eliminarPedido(numeroPedido);
+                    break;
+                case '9':
                     salir = true;
+                    System.out.println("Saliendo de la aplicación...");
+                    break;
+                default:
+                    System.out.println("Opción inválida. Inténtalo de nuevo.");
+                    break;
             }
         } while (!salir);
     }
-    char demanarOpcionMenu() {
-        String resp;
-        System.out.print("Elige una opción (1,2,3,4,5 o 0): ");
-        resp = teclado.nextLine();
+
+    /**
+     * Método auxiliar para leer la opción del menú.
+     */
+    private char pedirOpcionMenu() {
+        String resp = teclado.nextLine().trim();
         if (resp.isEmpty()) {
             resp = " ";
         }
