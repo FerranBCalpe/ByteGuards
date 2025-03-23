@@ -1,46 +1,70 @@
 package grupofp.modelo;
 
-public class Articulo {
-
+public class Articulo{
     private String codigoArticulo;
     private String descripcion;
-    private double precioVenta;
-    private double gastosEnvio;
+    private float precio;
+    private float gastosEnvio;
     private int tiempoPreparacion;
 
-    // constructor
-    public Articulo(String codigo, String descripcion, double precioVenta, double gastosEnvio, int tiempoPreparacion) {
-        this.codigoArticulo = codigo;
+    public Articulo(){}
+    public Articulo(String idArticulo, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
+        this.codigoArticulo = idArticulo;
         this.descripcion = descripcion;
-        this.precioVenta = precioVenta;
+        this.precio = precio;
         this.gastosEnvio = gastosEnvio;
         this.tiempoPreparacion = tiempoPreparacion;
     }
 
-    //mutartors_setters?
-
-    // accesor methods - getters
-
-    public String getCodigoArticulo(){
+    public String getcodigoArticulo() {
         return codigoArticulo;
     }
 
-    public String getDescripcion(){
+    public void setcodigoArticulo(String codigoArticulo) {
+        this.codigoArticulo = codigoArticulo;
+    }
+
+    public String getDescripcion() {
         return descripcion;
     }
 
-    public double getPrecioVenta(){
-        return precioVenta;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
-    public double getGastosEnvio(){
+    public float getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(float precio) {
+        this.precio = precio;
+    }
+
+    public float getGastosEnvio() {
         return gastosEnvio;
     }
 
-    public int getTiempoPreparacion(){
+    public void setGastosEnvio(float gastosEnvio) {
+        this.gastosEnvio = gastosEnvio;
+    }
+
+    public int getTiempoPreparacion() {
         return tiempoPreparacion;
     }
 
+    public void setTiempoPreparacion(int tiempoPreparacion) {
+        this.tiempoPreparacion = tiempoPreparacion;
+    }
 
+    @Override
+    public String toString() {
+        return "Articulo{" +
+                "Codigo del Articulo='" + codigoArticulo + '\'' +
+                ", Descripcion del Articulo='" + descripcion + '\'' +
+                ", Precio del Articulo=" + precio +
+                ", Gastos de envio del Articulo=" + gastosEnvio +
+                ", Tiempo de Preparacion del Articulo=" + tiempoPreparacion +
+                '}';
+    }
 
 }
