@@ -1,6 +1,9 @@
-package grupofp.modelo;
-/*
+package test.java.grupofp.modelo;
+
 import static org.junit.jupiter.api.Assertions.assertEquals; // Para usar métodos estáticos como assertEquals
+
+import grupofp.modelo.Articulo;
+import grupofp.modelo.ListaArticulos;
 import org.junit.jupiter.api.Test; // Para la anotación @Test de JUnit 5
 
 
@@ -37,8 +40,8 @@ public class DatosTest {
 
 
 
-    @Test
+ /*   @Test
     void addCliente() {
     }
-
-}*/
+*/
+}
