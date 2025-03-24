@@ -53,7 +53,7 @@ public class Datos {
         this.listaPedidos = listaPedidos;
     }
 
-    public void aniadirArticulo(String id, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
+    public void addArticulo(String id, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
 
         listaArticulos.add(new Articulo(id, descripcion, precio, gastosEnvio, tiempoPreparacion));
     }
@@ -65,7 +65,7 @@ public class Datos {
         return arrArticulos;
     }
 
-    public void anadirCliente(String nombre, String domicilio, String nif, String email, Float descuento) {
+    public void addCliente(String nombre, String domicilio, String nif, String email, Float descuento) {
         if (descuento != null) {
             listaClientes.add(new ClientePremium(nombre, domicilio, nif, email, descuento));
         } else {
@@ -102,7 +102,7 @@ public class Datos {
         return arrClientePremium;
     }
 
-    public boolean aniadirPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
+    public boolean addPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
         int contenido = -1;
         if (existeCliente(email)) {
             contenido = dameCliente(email);
@@ -148,7 +148,7 @@ public class Datos {
         return contenido;
     }
 
-    public void aniadirClientePedido(){
+    public void addClientePedido(){
         int lastIC = listaClientes.lista.size() -1;
         int lastIP = listaPedidos.lista.size()- 1;
         int numPedido = listaPedidos.getAt(lastIP).getNumPedido();

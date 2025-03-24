@@ -24,7 +24,7 @@ public class Controlador{
 
 
     public void entradaArticulo(String id, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
-        datos.aniadirArticulo(id, descripcion, precio, gastosEnvio, tiempoPreparacion);
+        datos.addArticulo(id, descripcion, precio, gastosEnvio, tiempoPreparacion);
 
     }
     public ArrayList recogerTodosArticulos(){
@@ -48,9 +48,9 @@ public class Controlador{
         }
 
         if (descuento != null) {
-            datos.anadirCliente(nombre, domicilio, nif, email, descuento);
+            datos.addCliente(nombre, domicilio, nif, email, descuento);
         } else {
-            datos.anadirCliente(nombre, domicilio, nif, email, null);
+            datos.addCliente(nombre, domicilio, nif, email, null);
         }
     }
 
@@ -73,12 +73,12 @@ public class Controlador{
     }
 
     public boolean entradaPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
-        boolean existe = datos.aniadirPedido(numPedido, cantidad, fecha, email, id);
+        boolean existe = datos.addPedido(numPedido, cantidad, fecha, email, id);
         return existe;
     }
 
     public void addClientePedido(){
-        datos.aniadirClientePedido();
+        datos.addClientePedido();
     };
 
     public void eliminarPedido(int numPedido){
