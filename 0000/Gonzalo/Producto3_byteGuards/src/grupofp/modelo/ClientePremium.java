@@ -1,11 +1,22 @@
 package grupofp.modelo;
 
-public class ClientePremium extends Cliente{
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "clientepremium")
+@PrimaryKeyJoinColumn(name = "idCliente")
+public class ClientePremium extends Cliente {
+
+    @Column(name = "descuento")
     private float descuento;
+
     public ClientePremium(String nombre, String domicilio, String nif, String email, float descuento) {
         super(nombre, domicilio, nif, email);
-        this.descuento=descuento;
+        this.descuento = descuento;
+    }
+
+    public ClientePremium() {
+        super();
     }
 
     public float getDescuento() {
@@ -27,15 +38,19 @@ public class ClientePremium extends Cliente{
                 '}';
     }
 
-    public String tipoCliente(){
+    @Override
+    public String tipoCliente() {
         return "Cliente Premium";
     }
-    public float descuentoEnv(){
+
+    @Override
+    public float descuentoEnv() {
         return getDescuento();
     }
 
-    public  float calcAnual(){
-        float calcA = 30;
-        return calcA;
+    @Override
+    public float calcAnual() {
+        return 30;
     }
 }
+

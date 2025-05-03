@@ -1,5 +1,6 @@
 package grupofp.mysql;
 
+import com.mysql.cj.xdevapi.Client;
 import grupofp.dao.ClienteDAO;
 import grupofp.dao.DAOException;
 import grupofp.modelo.Cliente;
@@ -10,8 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-// Implementación concreta de ClienteDAO para MySQL
 public class MySQLClienteDAO implements ClienteDAO {
     final String INSERT = "INSERT INTO cliente (email, domicilio, nif, nombre) VALUES (?,?,?,?);";
     final String GETALL = "SELECT email, domicilio, nif, nombre FROM cliente";
@@ -20,13 +19,11 @@ public class MySQLClienteDAO implements ClienteDAO {
     final String DELETE = "DELETE FROM cliente WHERE email=?";
     private Connection conn;
 
-    // Metodo auxiliar para convertir un ResultSet en un objeto Cliente
     private Cliente convertir (ResultSet rs) throws SQLException{
         String email = rs.getString("email");
         String domicilio = rs.getString("domicilio");
         String nif = rs.getString("nif");
         String nombre = rs.getString("nombre");
-
         Cliente cliente = new Cliente(nombre, domicilio, nif, email) {
             @Override
             public float calcAnual() {
@@ -43,29 +40,30 @@ public class MySQLClienteDAO implements ClienteDAO {
                 return 0;
             }
         };
+
         return cliente;
     }
-
-    // Inserta un cliente en la base de datos
     @Override
     public void insertar(Cliente c) throws DAOException {
         PreparedStatement stat = null;
         try {
             conn = new MySQLDAOManager().conectar();
 
-            conn.setAutoCommit(false); // Comenzar transacción manual
+            // Deshabilitar auto-commit
+            conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(INSERT);
             stat.setString(1, c.getEmail());
             stat.setString(2, c.getDomicilio());
             stat.setString(3, c.getNif());
             stat.setString(4, c.getNombre());
-            stat.executeUpdate();  // Ejecutar inserción
+            stat.executeUpdate();
 
-            conn.commit();  // Confirmar transacción
+            // Confirmar la transacción si va bien
+            conn.commit();
 
         } catch (SQLException ex) {
-            // Revertir en caso de error
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -77,16 +75,17 @@ public class MySQLClienteDAO implements ClienteDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
-            // Restaurar estado y cerrar recursos
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
+
             if (stat != null) {
                 try {
                     stat.close();
@@ -97,12 +96,12 @@ public class MySQLClienteDAO implements ClienteDAO {
         }
     }
 
-    // Modifica un cliente existente
     public void modificar(Cliente a) throws DAOException {
         PreparedStatement stat = null;
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(UPDATE);
@@ -110,12 +109,14 @@ public class MySQLClienteDAO implements ClienteDAO {
             stat.setString(2, a.getDomicilio());
             stat.setString(3, a.getNif());
             stat.setString(4, a.getNombre());
-            stat.setString(5, a.getEmail()); // Criterio: email actual
+            stat.setString(5, a.getEmail()); // Utilizamos el email como criterio de modificación
             stat.executeUpdate();
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -127,15 +128,18 @@ public class MySQLClienteDAO implements ClienteDAO {
             throw new DAOException("Error en SQL al modificar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
+
+            // Cerrar recursos
             if (stat != null) {
                 try {
                     stat.close();
@@ -145,22 +149,25 @@ public class MySQLClienteDAO implements ClienteDAO {
             }
         }
     }
-    // Elimina un cliente de la base de datos
+
     @Override
     public void eliminar(Cliente a) throws DAOException {
         PreparedStatement stat = null;
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(DELETE);
-            stat.setString(1, a.getEmail()); // Criterio: email
+            stat.setString(1, a.getEmail()); // Utilizamos el email como criterio de eliminación
             stat.executeUpdate();
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -172,15 +179,18 @@ public class MySQLClienteDAO implements ClienteDAO {
             throw new DAOException("Error en SQL al eliminar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
+
+            // Cerrar recursos
             if (stat != null) {
                 try {
                     stat.close();
@@ -191,7 +201,6 @@ public class MySQLClienteDAO implements ClienteDAO {
         }
     }
 
-    // Recupera todos los clientes de la base de datos
     public List<Cliente> obtenerTodos() throws DAOException {
         PreparedStatement stat = null;
         ResultSet rs = null;
@@ -200,18 +209,21 @@ public class MySQLClienteDAO implements ClienteDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(GETALL);
             rs = stat.executeQuery();
 
             while (rs.next()) {
-                clientes.add(convertir(rs)); // Convertir cada fila en Cliente
+                clientes.add(convertir(rs));
             }
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -223,16 +235,18 @@ public class MySQLClienteDAO implements ClienteDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
 
+            // Cerrar recursos
             if (rs != null) {
                 try {
                     rs.close();
@@ -249,10 +263,11 @@ public class MySQLClienteDAO implements ClienteDAO {
                 }
             }
         }
+
         return clientes;
     }
 
-    // Recupera un cliente específico por email
+
     @Override
     public Cliente obtener(String id) throws DAOException {
         Connection conn = null;
@@ -263,6 +278,7 @@ public class MySQLClienteDAO implements ClienteDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(GETONE);
@@ -270,15 +286,16 @@ public class MySQLClienteDAO implements ClienteDAO {
             rs = stat.executeQuery();
 
             if (rs.next()) {
-                c = convertir(rs);  // Convertir a objeto Cliente
+                c = convertir(rs);
             } else {
                 throw new DAOException("No se ha encontrado ese registro.");
             }
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
-
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -290,16 +307,18 @@ public class MySQLClienteDAO implements ClienteDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
 
+            // Cerrar recursos
             if (rs != null) {
                 try {
                     rs.close();
@@ -316,6 +335,7 @@ public class MySQLClienteDAO implements ClienteDAO {
                 }
             }
         }
+
         return c;
     }
 }

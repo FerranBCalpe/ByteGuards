@@ -10,8 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class MySQLArticuloDAO implements ArticuloDAO {
     final String INSERT = "INSERT INTO articulo (idArticulo, descripcion, precio, gastosEnvio, tiempoPreparacion) VALUES (?,?,?,?,?);";
     final String GETALL = "SELECT idArticulo, descripcion, precio, gastosEnvio, tiempoPreparacion FROM articulo";
@@ -28,7 +26,7 @@ public class MySQLArticuloDAO implements ArticuloDAO {
     public MySQLArticuloDAO() {
 
     }
-    // Metodo auxiliar para convertir un ResultSet en un objeto Artículo
+
     private Articulo convertir (ResultSet rs) throws SQLException{
         String idArticulo = rs.getString("idArticulo");
         String descripcion = rs.getString("descripcion");
@@ -36,19 +34,19 @@ public class MySQLArticuloDAO implements ArticuloDAO {
         Float gastosEnvio = rs.getFloat("gastosEnvio");
         int tiempoPreparacion = rs.getInt("tiempoPreparacion");
         Articulo articulo = new Articulo(idArticulo, descripcion, precio, gastosEnvio, tiempoPreparacion);
+
         return articulo;
     }
-
-    // Metodo para insertar un artículo en la base de datos
     @Override
     public void insertar(Articulo a) throws DAOException {
         PreparedStatement stat = null;
         Connection conn = null; // No uses la variable de instancia, crea una local.
 
         try {
-            conn = new MySQLDAOManager().conectar(); // Se obtiene una conexión nueva
+            conn = new MySQLDAOManager().conectar();
 
-            conn.setAutoCommit(false);  // Se desactiva el auto-commit para control de transacción
+            // Deshabilitar auto-commit
+            conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(INSERT);
             stat.setString(1, a.getcodigoArticulo());
@@ -56,11 +54,13 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             stat.setFloat(3, a.getPrecio());
             stat.setFloat(4, a.getGastosEnvio());
             stat.setInt(5, a.getTiempoPreparacion());
+            stat.executeUpdate();
 
-            stat.executeUpdate(); // Se ejecuta la sentencia
-            conn.commit();  // Se confirma la transacción
+            // Confirmar la transacción
+            conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -72,11 +72,12 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -92,13 +93,13 @@ public class MySQLArticuloDAO implements ArticuloDAO {
         }
     }
 
-    // Metodo para modificar un artículo existente
     @Override
     public void modificar(Articulo a) throws DAOException {
         PreparedStatement stat = null;
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(UPDATE);
@@ -109,11 +110,11 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             stat.setString(5, a.getcodigoArticulo());
             stat.executeUpdate();
 
-
-            conn.commit(); // Se confirma si ha ido bien
+            // Confirmar la transacción si va bien
+            conn.commit();
 
         } catch (SQLException ex) {
-            // Se revierte en caso de error
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -125,16 +126,18 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             throw new DAOException("Error en SQL al modificar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
 
+            // Cerrar recursos
             if (stat != null) {
                 try {
                     stat.close();
@@ -145,22 +148,24 @@ public class MySQLArticuloDAO implements ArticuloDAO {
         }
     }
 
-    // Metodo para eliminar un artículo
     @Override
     public void eliminar(Articulo a) throws DAOException {
         PreparedStatement stat = null;
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(DELETE);
             stat.setString(1, a.getcodigoArticulo()); // Utilizamos el email como criterio de eliminación
             stat.executeUpdate();
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -172,16 +177,18 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             throw new DAOException("Error en SQL al eliminar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
 
+            // Cerrar recursos
             if (stat != null) {
                 try {
                     stat.close();
@@ -191,7 +198,7 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             }
         }
     }
-    // Metodo para obtener todos los artículos
+
     @Override
     public List<Articulo> obtenerTodos() throws DAOException {
         Connection conn = null;
@@ -202,19 +209,21 @@ public class MySQLArticuloDAO implements ArticuloDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(GETALL);
             rs = stat.executeQuery();
 
-            // Se añaden los artículos a la lista
             while (rs.next()) {
                 articulos.add(convertir(rs));
             }
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -226,11 +235,12 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -252,10 +262,10 @@ public class MySQLArticuloDAO implements ArticuloDAO {
                 }
             }
         }
+
         return articulos;
     }
 
-    // Metodo para obtener un artículo por su ID
     @Override
     public Articulo obtener(String idArticulo) throws DAOException {
         Connection conn = null;
@@ -266,6 +276,7 @@ public class MySQLArticuloDAO implements ArticuloDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(GETONE);
@@ -273,14 +284,16 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             rs = stat.executeQuery();
 
             if (rs.next()) {
-                a = convertir(rs); // Se encuentra y convierte el artículo
+                a = convertir(rs);
             } else {
                 throw new DAOException("No se ha encontrado ese registro.");
             }
 
+            // Confirmar la transacción si va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -292,11 +305,12 @@ public class MySQLArticuloDAO implements ArticuloDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }

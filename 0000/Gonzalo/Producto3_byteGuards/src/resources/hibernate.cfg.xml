@@ -1,0 +1,31 @@
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+  <session-factory>
+    <!-- Configuración de la conexión a la base de datos -->
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+    <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/onlinestore_byteguards</property>
+    <property name="hibernate.connection.username">root</property>
+
+    <!-- Dialecto para MySQL -->
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+
+    <!-- Proveedor de conexión (asegúrate de tener la librería c3p0) -->
+    <!-- <property name="hibernate.connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property> -->
+
+    <!-- Opcional: Mostrar las consultas en consola -->
+    <property name="hibernate.show_sql">true</property>
+    <property name="hibernate.format_sql">true</property>
+
+    <!-- Mapeo de clases -->
+    <mapping class="grupofp.modelo.Articulo"/>
+    <mapping class="grupofp.modelo.Cliente"/>
+    <mapping class="grupofp.modelo.ClienteEstandar"/>
+    <mapping class="grupofp.modelo.ClientePremium"/>
+    <mapping class="grupofp.modelo.Pedido"/>
+
+  </session-factory>
+
+</hibernate-configuration>

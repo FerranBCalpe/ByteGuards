@@ -1,16 +1,28 @@
 package grupofp.modelo;
 
+import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-// Se utiliza para definir atributos y métodos comunes a todos los tipos de clientes.
-// Hay ciertos comportamientos como calcular la cuota anual, definir el tipo de cliente y
-// calcular el descuento en el envío que varían según el tipo de cliente.
-
+@Entity
+@Table(name = "cliente")
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Cliente {
-    private String nombre;
-    private String domicilio;
-    private String nif;
-    private String email;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
+    @Column(name = "idCliente")
+    private int idCliente;
+    @Column(name = "nombre")
+    private String nombre;
+    @Column(name = "domicilio")
+    private String domicilio;
+    @Column(name = "nif")
+    private String nif;
+    @Column(name = "email")
+    private String email;
 
     public Cliente(String nombre, String domicilio, String nif, String email) {
         this.nombre = nombre;
@@ -18,6 +30,13 @@ public abstract class Cliente {
         this.nif = nif;
         this.email = email;
     }
+
+    public Cliente() {
+
+    }
+
+
+
     public String getNombre() {
         return nombre;
     }
@@ -66,4 +85,11 @@ public abstract class Cliente {
 
     public abstract float descuentoEnv();
 
+    public int getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
+    }
 }

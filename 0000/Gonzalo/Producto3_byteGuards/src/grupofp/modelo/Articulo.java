@@ -1,12 +1,24 @@
 package grupofp.modelo;
 
-public class Articulo{
-    private String codigoArticulo;
-    private String descripcion;
-    private float precio;
-    private float gastosEnvio;
-    private int tiempoPreparacion;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "articulo")
+public class Articulo {
+    @Id
+    @Column(name = "idArticulo")
+    private String codigoArticulo;
+    @Column(name = "descripcion")
+    private String descripcion;
+    @Column(name = "precio")
+    private float precio;
+    @Column(name = "gastosEnvio")
+    private float gastosEnvio;
+    @Column(name = "tiempoPreparacion")
+    private int tiempoPreparacion;
     public Articulo(){}
     public Articulo(String idArticulo, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
         this.codigoArticulo = idArticulo;

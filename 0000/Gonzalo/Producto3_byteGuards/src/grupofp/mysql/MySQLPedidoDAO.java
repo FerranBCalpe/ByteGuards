@@ -22,24 +22,13 @@ public class MySQLPedidoDAO implements PedidoDAO {
     }
 
     public MySQLPedidoDAO() {
-    }
 
-    /**
-     * Convierte un objeto LocalDateTime a un objeto Timestamp para la base de datos.
-     * @param date Objeto LocalDateTime a convertir.
-     * @return Objeto Timestamp con el valor de date.
-     */
+    }
     public static Timestamp cambiarFechaSQL(LocalDateTime date) {
         Timestamp timestamp = Timestamp.valueOf(date);
         return timestamp;
     }
 
-    /**
-     * Convierte un ResultSet en un objeto Pedido.
-     * @param rs El ResultSet obtenido de la base de datos.
-     * @return Un objeto Pedido.
-     * @throws SQLException Si ocurre un error al procesar el ResultSet.
-     */
     private Pedido convertir (ResultSet rs) throws SQLException{
         int num_pedido = rs.getInt("num_pedido");
         int cantidad = rs.getInt("cantidad");
@@ -52,11 +41,6 @@ public class MySQLPedidoDAO implements PedidoDAO {
         return pedido;
     }
 
-    /**
-     * Inserta un nuevo pedido en la base de datos.
-     * @param p El objeto Pedido que contiene los datos a insertar.
-     * @throws DAOException Sí ocurre un error durante la operación SQL.
-     */
     @Override
     public void insertar(Pedido p) throws DAOException {
         PreparedStatement stat = null;
@@ -65,7 +49,7 @@ public class MySQLPedidoDAO implements PedidoDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
-            // Deshabilitar auto-commit para manejar la transacción
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(INSERT);
@@ -77,7 +61,7 @@ public class MySQLPedidoDAO implements PedidoDAO {
             stat.setString(5, p.getArticulo().getcodigoArticulo());
             stat.executeUpdate();
 
-            // Confirmar la transacción si no hay errores
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
@@ -93,12 +77,12 @@ public class MySQLPedidoDAO implements PedidoDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
-            // Restaurar el auto-commit y cerrar los recursos
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -113,11 +97,8 @@ public class MySQLPedidoDAO implements PedidoDAO {
             }
         }
     }
-    /**
-     * Modifica los datos de un pedido en la base de datos.
-     * @param p El objeto Pedido con los datos actualizados.
-     * @throws DAOException Sí ocurre un error durante la operación SQL.
-     */
+
+
     @Override
     public void modificar(Pedido p) throws DAOException {
         PreparedStatement stat = null;
@@ -126,6 +107,7 @@ public class MySQLPedidoDAO implements PedidoDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(UPDATE);
@@ -137,9 +119,11 @@ public class MySQLPedidoDAO implements PedidoDAO {
             stat.setInt(5, p.getNumPedido());
             stat.executeUpdate();
 
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -151,11 +135,12 @@ public class MySQLPedidoDAO implements PedidoDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -170,11 +155,7 @@ public class MySQLPedidoDAO implements PedidoDAO {
             }
         }
     }
-    /**
-     * Elimina un pedido de la base de datos.
-     * @param p El objeto Pedido a eliminar.
-     * @throws DAOException Sí ocurre un error durante la operación SQL.
-     */
+
     @Override
     public void eliminar(Pedido p) throws DAOException {
         PreparedStatement stat = null;
@@ -183,6 +164,7 @@ public class MySQLPedidoDAO implements PedidoDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(DELETE);
@@ -191,9 +173,11 @@ public class MySQLPedidoDAO implements PedidoDAO {
                 throw new DAOException("El pedido no se ha borrado.");
             }
 
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -205,11 +189,12 @@ public class MySQLPedidoDAO implements PedidoDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -225,17 +210,12 @@ public class MySQLPedidoDAO implements PedidoDAO {
         }
     }
 
+
     @Override
     public List<Pedido> obtenerTodos() {
         return null;
     }
 
-    /**
-     * Obtiene un pedido por su número de identificación.
-     * @param id El ID del pedido.
-     * @return El objeto Pedido correspondiente.
-     * @throws DAOException Si no se encuentra el pedido o hay un error en la consulta.
-     */
     @Override
     public Pedido obtener(Integer id) throws DAOException{
         int idd = id;
@@ -274,13 +254,6 @@ public class MySQLPedidoDAO implements PedidoDAO {
         }
         return p;
     }
-
-    /**
-     * Obtiene el código del artículo relacionado con un pedido.
-     * @param id El ID del pedido.
-     * @return El código del artículo.
-     * @throws DAOException Si hay un error en la consulta.
-     */
     public String obtenerArticulo(Integer id) throws DAOException{
         int idd = id;
         conn = new MySQLDAOManager().conectar();
@@ -318,7 +291,6 @@ public class MySQLPedidoDAO implements PedidoDAO {
         }
         return a;
     }
-
     @Override
     public List<Pedido> obtenerPorCliente(String cliente) throws DAOException {
         return null;

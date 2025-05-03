@@ -1,23 +1,28 @@
 package grupofp.modelo;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.procedure.ProcedureCall;
+import org.hibernate.procedure.ProcedureOutputs;
+import org.hibernate.query.Query;
+import org.hibernate.result.ResultSetOutput;
+
+
 import java.sql.*;
-import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- * La clase Datos es el núcleo central del modelo de la aplicación, encargada de gestionar
- * y almacenar las colecciones dinámicas de datos, incluyendo artículos, clientes y pedidos.
- * Actúa como el intermediario entre el controlador y el resto del modelo, proporcionando
- * métodos para añadir, modificar, eliminar y consultar los datos a través de sus listas:
- * - ListaArticulos para gestionar los artículos.
- * - ListaClientes para gestionar los clientes.
- * - ListaPedidos para gestionar los pedidos.
- * Cada una de estas listas se implementa utilizando una estructura dinámica basada en ArrayList,
- * lo que permite un manejo flexible y eficiente del almacenamiento de datos, redimensionándose
- * automáticamente según la necesidad. Esta abstracción facilita la reutilización y el mantenimiento
- * del código, al centralizar la gestión de la información en una única clase.
+/*
+La clase Datos es la clase principal del paquete del modelo, puesto que
+contiene y gestiona todos los datos de la aplicación y es el enlace entre
+el controlador y el resto de las clases del modelo ya que el controlador solo
+llamará a los métodos de esta clase
  */
+
 public class Datos {
     private ListaArticulos listaArticulos;
     private ListaClientes listaClientes;
@@ -25,9 +30,14 @@ public class Datos {
 
     private Connection dbConnection; // para conectar la BBDD
 
+    private SessionFactory sessionFactory;
 
 
     public Datos() {
+
+        Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
+        sessionFactory = configuration.buildSessionFactory();
+
         listaArticulos = new ListaArticulos();
         listaClientes = new ListaClientes();
         listaPedidos = new ListaPedidos();
@@ -35,7 +45,7 @@ public class Datos {
 
         // Conexión a la BBDD
         MySQLConnector connector = new MySQLConnector();
-        dbConnection =connector.getConnection();
+        dbConnection = connector.getConnection();
 
     }
 
@@ -64,8 +74,21 @@ public class Datos {
     }
 
 
+    /*
     public void addArticulo(String id, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
-        String insertQuery = "INSERT INTO articulo (idArticulo, descripcion, precio, gastosEnvio, tiempoPreparacion) VALUES (?, ?, ?, ?, ?)";
+
+        listaArticulos.add(new Articulo(id, descripcion, precio, gastosEnvio, tiempoPreparacion));
+    }
+    public ArrayList recorrerTodosArticulos(){
+        ArrayList<String> arrArticulos = new ArrayList<>();
+        for(Articulo a : listaArticulos.lista){
+            arrArticulos.add(a.toString());
+        }
+        return arrArticulos;
+    }
+*/
+    public void addArticulo(String id, String descripcion, float precio, float gastosEnvio, int tiempoPreparacion) {
+        /*String insertQuery = "INSERT INTO articulo (idArticulo, descripcion, precio, gastosEnvio, tiempoPreparacion) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(insertQuery)) {
             preparedStatement.setString(1, id);
@@ -82,10 +105,31 @@ public class Datos {
             System.err.println("Error al agregar artículo a la base de datos: " + e.getMessage());
         }
     }
+*/
+        Articulo nuevoArticulo = new Articulo(id, descripcion, precio, gastosEnvio, tiempoPreparacion);
+
+        // Abre la sesión de Hibernate
+        try (Session session = sessionFactory.openSession()) {
+            // Inicia la transacción
+            Transaction transaction = session.beginTransaction();
+
+            // Guarda el nuevo Articulo en la base de datos
+            session.save(nuevoArticulo);
+
+            // Confirma la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
     public ArrayList<String> recorrerTodosArticulos() {
         ArrayList<String> arrArticulos = new ArrayList<>();
-        String selectQuery = "SELECT * FROM articulo";
+
+       /* String selectQuery = "SELECT * FROM articulo";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectQuery)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -112,9 +156,62 @@ public class Datos {
 
         return arrArticulos;
     }
+*/
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
 
+            // Ejemplo de recuperación de todos los registros de la tabla Articulo
+            Query<Articulo> query = session.createQuery("FROM Articulo", Articulo.class);
+            List<Articulo> articulos = query.list();
+
+            // Procesa los registros recuperados
+            for (Articulo articulo : articulos) {
+                String codigoArticulo = articulo.getcodigoArticulo();
+                String descripcion = articulo.getDescripcion();
+                float precio = articulo.getPrecio();
+                float gastosEnvio = articulo.getGastosEnvio();
+                int tiempoPreparacion = articulo.getTiempoPreparacion();
+
+                String articuloInfo = "Articulo{" +
+                        "Codigo del Articulo='" + codigoArticulo + '\'' +
+                        ", Descripcion del Articulo='" + descripcion + '\'' +
+                        ", Precio del Articulo=" + precio +
+                        ", Gastos de envio del Articulo=" + gastosEnvio +
+                        ", Tiempo de Preparacion del Articulo=" + tiempoPreparacion +
+                        '}';
+                arrArticulos.add(articuloInfo);
+            }
+
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return arrArticulos;
+    }
+
+    // CAMBIOS APLICADOS PARA AÑADIR CLIENTE
+//    public void aniadirCliente(String nombre, String domicilio, String nif, String email, Float descuento) {
+//        if (descuento != null) {
+//            listaClientes.add(new ClientePremium(nombre, domicilio, nif, email, descuento));
+//        } else {
+//            listaClientes.add(new ClienteEstandar(nombre, domicilio, nif, email));
+//        }
+//
+//    }
+
+    //    public ArrayList recorrerTodosClientes(){
+//        ArrayList<String> arrClientes = new ArrayList<>();
+//        for(Cliente listaClientes1 : listaClientes.lista){
+//            arrClientes.add(listaClientes1.toString());
+//        }
+//        return arrClientes;
+//    }
     public void addCliente(String nombre, String domicilio, String nif, String email, Float descuento) {
-        try {
+        /*try {
             // validarNIF(nif);
 
             String insertQuery = "INSERT INTO cliente (nombre, domicilio, nif, email) VALUES (?, ?, ?, ?)";
@@ -159,12 +256,37 @@ public class Datos {
         } catch (SQLException e) {
             System.err.println("Error al agregar cliente a la base de datos: " + e.getMessage());
         }
+        // catch (Controlador.NIFValidationException e) {
+        //    throw new RuntimeException(e);
+        // }
+    }*/
+        Cliente nuevoCliente = null;
+        if (descuento != null) {
+            nuevoCliente = new ClientePremium(nombre, domicilio, nif, email, descuento);
+        }
+        else {
+            nuevoCliente = new ClienteEstandar(nombre, domicilio, nif, email);
+        }
+
+        // Abre la sesión de Hibernate
+        try (Session session = sessionFactory.openSession()) {
+            // Inicia la transacción
+            Transaction transaction = session.beginTransaction();
+
+            // Guarda el nuevo Cliente en la base de datos
+            session.save(nuevoCliente);
+
+            // Confirma la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     public ArrayList<String> recorrerTodosClientes() {
         ArrayList<String> arrClientes = new ArrayList<>();
-        String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente";
+        /*String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectQuery)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -199,11 +321,44 @@ public class Datos {
         }
 
         return arrClientes;
+    }*/
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
+
+            Query<Cliente> query = session.createQuery("FROM Cliente", Cliente.class);
+            List<Cliente> clientes = query.list();
+
+            // Procesa los registros recuperados
+            for (Cliente cliente : clientes) {
+
+                String nombre = cliente.getNombre();
+                String domicilio = cliente.getDomicilio();
+                String nif = cliente.getNif();
+                String email = cliente.getEmail();
+
+                String clienteInfo = "Cliente{" +
+
+                        ", nombre='" + nombre + '\'' +
+                        ", domicilio=" + domicilio +
+                        ", nif=" + nif +
+                        ", email=" + email +
+                        '}';
+                arrClientes.add(clienteInfo);
+            }
+
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return arrClientes;
     }
 
     public ArrayList<String> recorrerClienteE() {
         ArrayList<String> arrClienteEstandar = new ArrayList<>();
-        String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente WHERE clientePremium.descuento IS NULL";
+        /*String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente WHERE clientePremium.descuento IS NULL";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectQuery)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -226,12 +381,46 @@ public class Datos {
         }
 
         return arrClienteEstandar;
-    }
+    }*/
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
 
+            ProcedureCall procedureCall = session.createStoredProcedureCall("obtenerClientesEstandar");
+
+            ProcedureOutputs procedureOutputs = procedureCall.getOutputs();
+            ResultSetOutput resultSetOutput = (ResultSetOutput) procedureOutputs.getCurrent();
+
+            // Procesa los registros recuperados
+            resultSetOutput.getResultList().forEach(row -> {
+                if (row instanceof Object[]) {
+                    Object[] columns = (Object[]) row;
+                    int id = (int)columns[0];
+                    String nombre = (String)columns[1];
+                    String domicilio = (String)columns[2];
+                    String nif = (String)columns[3];
+                    String email = (String)columns[4];
+
+                    arrClienteEstandar.add("Cliente Estándar{" +
+                            "Nombre: " + nombre +
+                            " Domicilio: " + domicilio +
+                            " Nif: " + nif +
+                            " Email: " + email);
+                }
+            });
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return arrClienteEstandar;
+    }
 
     public ArrayList<String> recorrerClienteP() {
         ArrayList<String> arrClientePremium = new ArrayList<>();
-        String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente WHERE clientePremium.descuento > 0";
+       /* String selectQuery = "SELECT cliente.*, clientePremium.descuento FROM cliente LEFT JOIN clientePremium ON cliente.idcliente = clientePremium.idcliente WHERE clientePremium.descuento > 0";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectQuery)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -256,11 +445,45 @@ public class Datos {
         }
 
         return arrClientePremium;
+    }*/
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
+
+            ProcedureCall procedureCall = session.createStoredProcedureCall("obtenerClientesPremium");
+
+            ProcedureOutputs procedureOutputs = procedureCall.getOutputs();
+            ResultSetOutput resultSetOutput = (ResultSetOutput) procedureOutputs.getCurrent();
+
+            // Procesa los registros recuperados
+            resultSetOutput.getResultList().forEach(row -> {
+                if (row instanceof Object[]) {
+                    Object[] columns = (Object[]) row;
+                    int id = (int)columns[0];
+                    String nombre = (String)columns[1];
+                    String domicilio = (String)columns[2];
+                    String nif = (String)columns[3];
+                    String email = (String)columns[4];
+                    float descuento = (float)columns[6];
+
+                    arrClientePremium.add("Cliente Premium{" +
+                            "Nombre: " + nombre +
+                            " Domicilio: " + domicilio +
+                            " Nif: " + nif +
+                            " Email: " + email +
+                            " Descuento: " + descuento);
+                }
+            });
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return arrClientePremium;
     }
 
-
-
-    public boolean addPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
+    /*public boolean addPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
         String selectClienteQuery = "SELECT idcliente FROM cliente WHERE email = ?";
         String selectArticuloQuery = "SELECT idArticulo FROM articulo WHERE idArticulo = ?";
         String insertPedidoQuery = "INSERT INTO pedido (numPedido, cantidad, fecha, idCliente, idArticulo) VALUES (?, ?, ?, ?, ?)";
@@ -311,11 +534,94 @@ public class Datos {
         }
 
         return false;
+    }*/
+    public boolean addPedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String id) {
+        Cliente cliente = obtenerClientePorEmail(email);
+        Articulo articulo = obtenerArticuloPorId(id);
+
+        if (cliente != null && articulo != null) {
+            Pedido nuevoPedido = new Pedido(numPedido, cantidad, fecha, cliente, articulo);
+
+            // Abre la sesión de Hibernate
+            try (Session session = sessionFactory.openSession()) {
+                // Inicia la transacción
+                Transaction transaction = session.beginTransaction();
+
+                // Guarda el nuevo Pedido en la base de datos
+                session.save(nuevoPedido);
+
+                // Confirma la transacción
+                transaction.commit();
+                System.out.println("Pedido agregado con éxito a la base de datos.");
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error al agregar pedido a la base de datos: " + e.getMessage());
+            }
+        } else {
+            System.err.println("No se pudo agregar el pedido porque el cliente o el artículo no fueron encontrados.");
+        }
+
+        return false;
     }
 
 
-    public Articulo dameArticulo(String id) {
+    private Cliente obtenerClientePorEmail(String email) {
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
 
+            Query<Cliente> query = session.createQuery("FROM Cliente WHERE email = :email", Cliente.class);
+            query.setParameter("email", email);
+            Cliente cliente = query.uniqueResult();
+
+            // Finaliza la transacción
+            transaction.commit();
+
+            return cliente;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error al obtener cliente por email: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+
+    private Articulo obtenerArticuloPorId(String id) {
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
+
+            Query<Articulo> query = session.createQuery("FROM Articulo WHERE codigoArticulo = :idArticulo", Articulo.class);
+            query.setParameter("idArticulo", id);
+            Articulo articulo = query.uniqueResult();
+
+            // Finaliza la transacción
+            transaction.commit();
+
+            return articulo;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error al obtener artículo por ID: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+
+
+
+
+
+    public Articulo dameArticulo(String id) {
+//        Articulo articulo = new Articulo();
+//        for(Articulo art : listaArticulos.lista){
+//            if(id.equals(art.getIdArticulo())){
+//                articulo = art;
+//            }
+//        }
+//        return articulo;
         String selectQuery = "SELECT * FROM articulo WHERE idArticulo = ?";
         Articulo articulo = new Articulo();
 
@@ -339,7 +645,12 @@ public class Datos {
 
 
     public boolean existeCliente(String email) {
-
+//        for (Cliente cli : listaClientes.lista) {
+//            if (cli.getEmail().equals(email)) {
+//                return true;
+//            }
+//        }
+//        return false;
         String selectQuery = "SELECT COUNT(*) FROM cliente WHERE email = ?";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectQuery)) {
@@ -357,8 +668,15 @@ public class Datos {
         return false;
     }
 
-    public int dameCliente(String email) {
-
+    /*public int dameCliente(String email) {
+//        int contenido = 0;
+//        for(Cliente cli : listaClientes.lista){
+//            if(email.equals(cli.getEmail())){
+//                return contenido;
+//            }
+//            contenido++;
+//        }
+//        return contenido;
         String selectQuery = "SELECT idcliente FROM cliente WHERE email = ?";
         int clienteId = -1;
 
@@ -374,7 +692,24 @@ public class Datos {
         }
 
         return clienteId;
+    }*/
+
+    public int dameCliente(String email) {
+        int clienteId = -1;
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "SELECT c.id FROM Cliente c WHERE c.email = :email";
+            Integer result = session.createQuery(hql, Integer.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+            if (result != null) {
+                clienteId = result;
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener el ID del cliente con Hibernate: " + e.getMessage());
+        }
+        return clienteId;
     }
+
 
 
     public void addClientePedido(int numPedido, int cantidad, LocalDateTime fecha, String email, String idArticulo) {
@@ -404,7 +739,7 @@ public class Datos {
     }
 
     public void borrarPedido(int numPedido) {
-        String selectFechaQuery = "SELECT fecha FROM pedido WHERE numPedido = ?";
+       /* String selectFechaQuery = "SELECT fecha FROM pedido WHERE numPedido = ?";
         String deletePedidoQuery = "DELETE FROM pedido WHERE numPedido = ?";
 
         try (PreparedStatement selectStatement = dbConnection.prepareStatement(selectFechaQuery)) {
@@ -438,47 +773,134 @@ public class Datos {
         } catch (SQLException e) {
             System.err.println("Error al procesar la eliminación del pedido: " + e.getMessage());
         }
+    }*/
+        try (Session session = sessionFactory.openSession()) {
+            // Inicia una transacción
+            session.beginTransaction();
+
+            String hql = "FROM Pedido p WHERE p.numPedido = :numPedido";
+            Query<Pedido> query = session.createQuery(hql, Pedido.class);
+            query.setParameter("numPedido", numPedido);
+            Pedido pedidoAEliminar = query.uniqueResult();
+
+            // Borra el objeto de la base de datos
+            if (pedidoAEliminar != null) {
+                session.delete(pedidoAEliminar);
+                System.out.println("Pedido eliminado exitosamente.");
+            } else {
+                System.out.println("Pedido no encontrado. No se realizó ninguna operación de eliminación.");
+            }
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
-    public ArrayList<String> filtroPendiente() {
-        ArrayList<String> arrPendientes = new ArrayList<>();
-        String query = "SELECT pedido.numPedido, pedido.cantidad, pedido.fecha, cliente.email, articulo.descripcion " +
-                "FROM pedido " +
-                "JOIN cliente ON pedido.idCliente = cliente.idCliente " +
-                "JOIN articulo ON pedido.idArticulo = articulo.idArticulo";
+   /* public ArrayList<String> pendientes() {
+        ArrayList<String> arrPedido = new ArrayList<>();
+        for (Pedido p : listaPedidos.lista) {
+            if (p.pedidoEnviado() == false) {
+                arrPedido.add(p.toString());
+            }
+        }
+        return arrPedido;
+    }
 
-        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(query);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+    public ArrayList<String> filtroPendiente(String email) {
+        ArrayList<String> filtro = new ArrayList<>();
+        for (Pedido p : listaPedidos.lista) {
+            if (p.getCliente().getEmail().equals(email) && p.pedidoEnviado() == false) {
+                filtro.add(p.toString());
+            }
+        }
+        return filtro;
+    }
 
-            while (resultSet.next()) {
-                LocalDateTime fechaPedido = resultSet.getTimestamp("fecha").toLocalDateTime();
-                LocalDateTime ahora = LocalDateTime.now();
+    public ArrayList<String> enviados() {
+        ArrayList<String> arrPedido = new ArrayList<>();
+        for (Pedido p : listaPedidos.lista) {
+            if (p.pedidoEnviado() == true) {
+                arrPedido.add(p.toString());
+            }
+        }
+        return arrPedido;
+    }
 
-                if (Duration.between(fechaPedido, ahora).toHours() < 24) {
-                    int numPedido = resultSet.getInt("numPedido");
-                    int cantidad = resultSet.getInt("cantidad");
-                    String email = resultSet.getString("email");
-                    String descripcion = resultSet.getString("descripcion");
+    public ArrayList<String> filtroEnviado(String email) {
+        ArrayList<String> filtro = new ArrayList<>();
+        for (Pedido p : listaPedidos.lista) {
+            if (p.getCliente().getEmail().equals(email) && p.pedidoEnviado() == true) {
+                filtro.add(p.toString());
+            }
+        }
+        return filtro;
+    }*/
 
-                    arrPendientes.add("Pedido Pendiente{" +
-                            "NumPedido: " + numPedido +
-                            ", Cantidad: " + cantidad +
-                            ", Fecha: " + fechaPedido +
-                            ", Email: " + email +
-                            ", Artículo: " + descripcion +
-                            "}");
+    public ArrayList<String> pendientes() {
+        ArrayList<String> arrPedido = new ArrayList<>();
+
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
+
+            // Ejemplo de recuperación de todos los registros de la tabla Pedido
+            Query<Pedido> query = session.createQuery("FROM Pedido", Pedido.class);
+            List<Pedido> pedidos = query.list();
+
+            // Procesa los registros recuperados
+            for (Pedido pedido : pedidos) {
+
+                int numPedido = pedido.getNumPedido();
+                int cantidad = pedido.getCantidad();
+                LocalDateTime fecha = pedido.getFecha();
+                int idArticulo = Integer.parseInt(pedido.getArticulo().getcodigoArticulo());
+
+                LocalDate hoy = LocalDate.now();
+                LocalDate ayer = hoy.minusDays(1);
+
+                if (fecha.isEqual(hoy.atStartOfDay()) || fecha.isEqual(ayer.atStartOfDay())) {
+                    arrPedido.add(" Número de pedido: " + numPedido + " Cantidad: " + cantidad + " Fecha: " + fecha + " IDArticulo " + idArticulo);
                 }
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error al obtener pedidos pendientes: " + e.getMessage());
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return arrPendientes;
+        return arrPedido;
     }
 
-    public ArrayList<String> filtroEnviado() {
+
+
+    /*public ArrayList<String> filtroPendiente(String email){
+        ArrayList<String> filtro = new ArrayList<>();
+        for(Pedido p : listaPedidos.lista){
+            if(p.getCliente().getEmail().equals(email) && p.pedidoEnviado() == false){
+                filtro.add(p.toString());
+            }
+        }
+        return filtro;
+    }*/
+
+    public List<Pedido> filtroPendiente(String emailCliente) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Pedido p WHERE p.cliente.email = :email AND p.fecha >= :limite";
+
+            return session.createQuery(hql, Pedido.class)
+                    .setParameter("email", emailCliente)
+                    .setParameter("limite", LocalDateTime.now().minusHours(24))
+                    .list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+
+    /*public ArrayList<String> filtroEnviado() {
         ArrayList<String> arrEnviados = new ArrayList<>();
         String query = "SELECT pedido.numPedido, pedido.cantidad, pedido.fecha, cliente.email, articulo.descripcion " +
                 "FROM pedido " +
@@ -515,7 +937,7 @@ public class Datos {
         return arrEnviados;
     }
 
-    public ArrayList<String> filtroPendiente(String email) {
+   /* public ArrayList<String> filtroPendiente(String email) {
         ArrayList<String> arrPendientes = new ArrayList<>();
         String query = "SELECT pedido.numPedido, pedido.cantidad, pedido.fecha, cliente.email, articulo.descripcion " +
                 "FROM pedido " +
@@ -549,42 +971,68 @@ public class Datos {
         }
 
         return arrPendientes;
-    }
+    }*/
 
-    public ArrayList<String> filtroEnviado(String email) {
-        ArrayList<String> arrEnviados = new ArrayList<>();
-        String query = "SELECT pedido.numPedido, pedido.cantidad, pedido.fecha, cliente.email, articulo.descripcion " +
-                "FROM pedido " +
-                "JOIN cliente ON pedido.idCliente = cliente.idCliente " +
-                "JOIN articulo ON pedido.idArticulo = articulo.idArticulo " +
-                "WHERE cliente.email = ?";
+    public ArrayList<String> enviados() {
+        ArrayList<String> arrPedido = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(query)) {
-            preparedStatement.setString(1, email);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        try (Session session = sessionFactory.openSession()) {
+            // Comienza la transacción
+            Transaction transaction = session.beginTransaction();
 
-            while (resultSet.next()) {
-                LocalDateTime fechaPedido = resultSet.getTimestamp("fecha").toLocalDateTime();
-                if (Duration.between(fechaPedido, LocalDateTime.now()).toHours() >= 24) {
-                    int numPedido = resultSet.getInt("numPedido");
-                    int cantidad = resultSet.getInt("cantidad");
-                    String descripcion = resultSet.getString("descripcion");
+            // Modificada la consulta HQL para filtrar directamente por la fecha
+            String hql = "FROM Pedido p WHERE p.fecha < :limite";
+            Query<Pedido> query = session.createQuery(hql, Pedido.class);
+            query.setParameter("limite", LocalDateTime.now().minusDays(1)); // Fecha límite de hace 24 horas
 
-                    arrEnviados.add("Pedido Enviado{" +
-                            "NumPedido: " + numPedido +
-                            ", Cantidad: " + cantidad +
-                            ", Fecha: " + fechaPedido +
-                            ", Email: " + email +
-                            ", Artículo: " + descripcion +
-                            "}");
-                }
+            List<Pedido> pedidos = query.list();
+
+            // Procesa los registros recuperados
+            for (Pedido pedido : pedidos) {
+                int numPedido = pedido.getNumPedido();
+                int cantidad = pedido.getCantidad();
+                LocalDateTime fecha = pedido.getFecha();
+                int idArticulo = Integer.parseInt(pedido.getArticulo().getcodigoArticulo());
+
+                arrPedido.add("Número de pedido: " + numPedido + " Cantidad: " + cantidad + " Fecha: " + fecha + " IDArticulo " + idArticulo);
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error al filtrar pedidos enviados por cliente: " + e.getMessage());
+            // Finaliza la transacción
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return arrEnviados;
+        return arrPedido;
     }
 
+
+    /*public ArrayList<String> filtroEnviado(String email){
+        ArrayList<String> filtro = new ArrayList<>();
+        for(Pedido p : listaPedidos.lista){
+            if(p.getCliente().getEmail().equals(email) && p.pedidoEnviado() == true){
+                filtro.add(p.toString());
+            }
+        }
+        return filtro;
+    }*/
+
+    public List<Pedido> filtroEnviado(String emailCliente) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Pedido p WHERE p.cliente.email = :email AND p.fecha < :limite";
+
+            return session.createQuery(hql, Pedido.class)
+                    .setParameter("email", emailCliente)
+                    .setParameter("limite", LocalDateTime.now().minusHours(24))
+                    .list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+
+
 }
+
+

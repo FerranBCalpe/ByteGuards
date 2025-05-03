@@ -10,8 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
     final String INSERT = "INSERT INTO cliente_estandar (email_estandar, nombre, nif, domicilio) VALUES (?,?,?,?);";
     final String GETALL = "SELECT email_estandar, nombre, nif, domicilio FROM cliente_estandar";
@@ -27,7 +25,6 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
 
     }
 
-    // Inserta un cliente estándar en la base de datos
     @Override
     public void insertar(ClienteEstandar a) throws DAOException {
         Connection conn = null;
@@ -35,7 +32,7 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
-            // Deshabilita auto-commit para usar transacciones
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(INSERT);
@@ -45,11 +42,11 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             stat.setString(4, a.getDomicilio());
             stat.executeUpdate();
 
-            // Si va bien, confirmamos la transacción
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
-            // Rollback si hay error
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -57,19 +54,21 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             } catch (SQLException e) {
                 throw new DAOException("Error en rollback", e);
             }
+
             throw new DAOException("Error en SQL", ex);
 
         } finally {
-            // Restauramos el auto-commit y cerramos recursos
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
+
             if (stat != null) {
                 try {
                     stat.close();
@@ -79,8 +78,6 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             }
         }
     }
-
-    // Modifica un cliente estándar existente
     @Override
     public void modificar(ClienteEstandar a) throws DAOException {
         Connection conn = null;
@@ -88,6 +85,7 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(UPDATE);
@@ -97,9 +95,11 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             stat.setString(4, a.getEmail());
             stat.executeUpdate();
 
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -107,14 +107,16 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             } catch (SQLException e) {
                 throw new DAOException("Error en rollback", e);
             }
+
             throw new DAOException("Error en SQL al modificar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -130,7 +132,7 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         }
     }
 
-    // Elimina un cliente estándar de la base de datos
+
     @Override
     public void eliminar(ClienteEstandar a) throws DAOException {
         Connection conn = null;
@@ -138,15 +140,18 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(DELETE);
             stat.setString(1, a.getEmail());
             stat.executeUpdate();
 
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -158,11 +163,12 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             throw new DAOException("Error en SQL al eliminar", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -178,7 +184,7 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         }
     }
 
-    // Convierte un ResultSet en un objeto ClienteEstandar
+
     private ClienteEstandar convertir (ResultSet rs) throws SQLException{
         String email = rs.getString("email_estandar");
         String nombre = rs.getString("nombre");
@@ -188,8 +194,6 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
 
         return ce;
     }
-
-    // Devuelve todos los clientes estándar de la base de datos
     @Override
     public List<ClienteEstandar> obtenerTodos() throws DAOException {
         Connection conn = null;
@@ -199,17 +203,20 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         try {
             conn = new MySQLDAOManager().conectar();
 
+            // Deshabilitar auto-commit
             conn.setAutoCommit(false);
 
             stat = conn.prepareStatement(GETALL);
             rs = stat.executeQuery();
             while (rs.next()) {
-                clienteEstandars.add(convertir(rs)); // Convertimos cada fila a objeto
+                clienteEstandars.add(convertir(rs));
             }
 
+            // Confirmar la transacción si todo va bien
             conn.commit();
 
         } catch (SQLException ex) {
+            // Hacer rollback en caso de error
             try {
                 if (conn != null) {
                     conn.rollback();
@@ -221,11 +228,12 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
             throw new DAOException("Error en SQL", ex);
 
         } finally {
+            // Restaurar auto-commit y cerrar recursos
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                    System.out.println("Se ha desconectado de la BBDD");
+                    System.out.println("Se ha desconectado de la bbdd");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -249,10 +257,32 @@ public class MySQLClienteEstandarDAO implements ClienteEstandarDAO {
         }
         return clienteEstandars;
     }
-    // Este metodo no está implementado, pero existe porque está definido en la interfaz
+
+
     @Override
     public ClienteEstandar obtener(Long id) {
         return null;
     }
 
+    /*public static void main(String[] args) throws DAOException, SQLException {
+        Connection conn = null;
+        final String driver = "com.mysql.cj.jdbc.Driver";
+        try {
+            Class.forName(driver);
+            conn = DriverManager.getConnection("jdbc:mysql://teamrocketmysql.mysql.database.azure.com:3306/teamrocket", "Administrador", "Pokemon1234");
+            ClienteEstandarDAO dao = new MySQLClienteEstandarDAO(conn);
+            ClienteEstandar ce = new ClienteEstandar("rhydty", "verrde", "fedea", "adae@");
+            List<ClienteEstandar> clienteEstandars = dao.obtenerTodos();
+            for (ClienteEstandar c : clienteEstandars) {
+                System.out.println(ce.toString());
+            }
+            //dao.insertar(ce);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }*/
 }

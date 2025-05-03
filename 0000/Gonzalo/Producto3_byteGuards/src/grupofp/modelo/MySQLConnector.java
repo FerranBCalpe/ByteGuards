@@ -8,9 +8,9 @@ public class MySQLConnector {
     private Connection connection;
 
     public MySQLConnector() {
-        String url = "jdbc:mysql://localhost:3306/OnlineStore_ByteGuards?useSSL=false&serverTimezone=Europe/Madrid";
+        String url = "jdbc:mysql://localhost:3306/onlinestore_byteguards?useSSL=false&serverTimezone=UTC";
         String user = "root";
-        String password = "1234";
+        String password = "";
 
         try {
             connection = DriverManager.getConnection(url, user, password);
